@@ -27,10 +27,22 @@ exports.SpotifyService = class SpotifyService extends Service {
       return data.access_token;
     });
 
-    return await axios.get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist&market=FR&limit=10&offset=5`, {
+    const artists = await axios.get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist&market=FR&limit=10`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(({ data }) => {
       return data.artists;
     });
+
+    for (let artist of artists.items) {
+      const albums = await axios.get(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=single,album`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(({ data }) => {
+        return data.items;
+      });
+
+      artist.albums = albums;
+    }
+
+    return artists;
   }
 };
